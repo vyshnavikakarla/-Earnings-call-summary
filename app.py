@@ -1,0 +1,53 @@
+from flask import Flask, render_template, request
+import os
+from utils.extractor import extract_text
+from utils.summarizer import summarize_text
+from dotenv import load_dotenv
+
+load_dotenv()
+
+app = Flask(__name__)
+
+UPLOAD_FOLDER = "uploads"
+app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
+
+# Create uploads folder if not exists
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+
+@app.route("/", methods=["GET", "POST"])
+def index():
+
+    result = None
+
+    if request.method == "POST":
+
+        file = request.files["file"]
+
+        if file:
+            filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
+            file.save(filepath)
+
+            text = extract_text(filepath)
+            result = summarize_text(text)
+            print("===== DEBUG START =====")
+            print("Extracted length:", len(text))
+            print(text[:1000])
+            print("===== DEBUG END =====")
+            print("File saved at:", filepath)
+            print("File exists:", os.path.exists(filepath))
+            print("File size:", os.path.getsize(filepath))
+
+
+            if not text.strip():
+                 result = "Error: Could not extract text from PDF."
+            else:
+                  result = summarize_text(text)
+
+
+    return render_template("index.html", result=result)
+
+
+
+
+if __name__ == "__main__":
+    app.run(debug=True)
