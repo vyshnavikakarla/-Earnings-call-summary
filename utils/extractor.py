@@ -1,28 +1,17 @@
-import fitz
-import pytesseract
-from pdf2image import convert_from_path
-
-pytesseract.pytesseract.tesseract_cmd = r"C:\Program Files\Tesseract-OCR\tesseract.exe"
+import pdfplumber
 
 def extract_text(path):
     text = ""
 
-    # Try normal extraction
-    doc = fitz.open(path)
-    for page in doc:
-        text += page.get_text("text")
-    doc.close()
+    try:
+        with pdfplumber.open(path) as pdf:
+            for page in pdf.pages:
+                page_text = page.extract_text()
+                if page_text:
+                    text += page_text + "\n"
 
-    # If very little text → use OCR
-    if len(text.strip()) < 500:
-        print("Switching to OCR...")
-        text = ""
-        pages = convert_from_path(
-            path,
-            poppler_path=r"C:\Release-25.12.0-0\poppler-25.12.0\Library\bin"
-        )
-
-        for page in pages:
-            text += pytesseract.image_to_string(page)
+    except Exception as e:
+        print(f"Error extracting PDF: {e}")
+        return ""
 
     return text

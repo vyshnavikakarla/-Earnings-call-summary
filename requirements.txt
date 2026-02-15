@@ -4,7 +4,5 @@ groq
 python-dotenv
 pymupdf
 pdfplumber
-pytesseract
-pdf2image
 pillow
 
