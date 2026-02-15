@@ -2,16 +2,25 @@ from groq import Groq
 import os
 from dotenv import load_dotenv
 
-load_dotenv()   
-
+load_dotenv()
 
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
 
-# Split text into manageable chunks
-def chunk_text(text, chunk_size=2500):
+# HARD LIMITS to prevent Render timeout
+MAX_TOTAL_CHARS = 8000
+CHUNK_SIZE = 2000
+MAX_CHUNKS = 3
+
+
+def chunk_text(text):
+    text = text[:MAX_TOTAL_CHARS]  # hard limit full text
     chunks = []
-    for i in range(0, len(text), chunk_size):
-        chunks.append(text[i:i+chunk_size])
+
+    for i in range(0, len(text), CHUNK_SIZE):
+        if len(chunks) >= MAX_CHUNKS:
+            break
+        chunks.append(text[i:i+CHUNK_SIZE])
+
     return chunks
 
 
@@ -20,15 +29,14 @@ def summarize_text(text):
 
     partial_summaries = []
 
-    # Step 1: Summarize chunks
-    for chunk in chunks[:3]:
-
+    # Step 1: Summarize limited chunks
+    for chunk in chunks:
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a financial research analyst. Extract key insights from earnings transcripts."
+                    "content": "You are a financial research analyst. Extract key insights strictly from the given transcript. Do not fabricate information."
                 },
                 {
                     "role": "user",
@@ -36,21 +44,26 @@ def summarize_text(text):
                 }
             ],
             temperature=0.3,
-            max_tokens=600
+            max_tokens=500
         )
 
         partial_summaries.append(response.choices[0].message.content)
 
     combined_text = "\n\n".join(partial_summaries)
 
-    # Step 2: Create FINAL structured output
+    # Step 2: Final structured output
     final_response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[
             {
                 "role": "system",
                 "content": """You are a financial research analyst.
-Generate structured output in this exact format:
+
+Strictly rely only on the provided transcript.
+If something is not mentioned, write:
+'Not explicitly discussed in transcript.'
+
+Generate output in this exact format:
 
 Management Tone:
 Confidence Level:
@@ -67,8 +80,7 @@ Capacity Utilization Trends:
             }
         ],
         temperature=0.2,
-        max_tokens=1200
+        max_tokens=900
     )
 
     return final_response.choices[0].message.content
-
