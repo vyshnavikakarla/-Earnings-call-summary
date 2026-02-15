@@ -8,7 +8,7 @@ load_dotenv()
 
 app = Flask(__name__)
 
-UPLOAD_FOLDER = "uploads"
+UPLOAD_FOLDER = "/tmp"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
 
 # Create uploads folder if not exists
@@ -29,13 +29,6 @@ def index():
 
             text = extract_text(filepath)
             result = summarize_text(text)
-            print("===== DEBUG START =====")
-            print("Extracted length:", len(text))
-            print(text[:1000])
-            print("===== DEBUG END =====")
-            print("File saved at:", filepath)
-            print("File exists:", os.path.exists(filepath))
-            print("File size:", os.path.getsize(filepath))
 
 
             if not text.strip():
