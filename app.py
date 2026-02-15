@@ -21,7 +21,7 @@ def index():
 
     if request.method == "POST":
 
-        file = request.files.get["file"]
+        file = request.files.get("file")
 
         if file and file.filename != "":
 
