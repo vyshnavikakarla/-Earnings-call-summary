@@ -21,14 +21,14 @@ def index():
 
     if request.method == "POST":
 
-        file = request.files["file"]
+        file = request.files.get["file"]
 
-        if file:
+        if file and file.filename != "":
+
             filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
             file.save(filepath)
 
             text = extract_text(filepath)
-            result = summarize_text(text)
 
 
             if not text.strip():
@@ -43,4 +43,4 @@ def index():
 
 
 if __name__ == "__main__":
-    app.run(debug=True)
+    app.run()
