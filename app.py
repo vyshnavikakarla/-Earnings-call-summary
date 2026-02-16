@@ -6,7 +6,14 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+
+
 app = Flask(__name__)
+
+@app.route("/")
+def index():
+    return "App is running successfully!"
+
 
 UPLOAD_FOLDER = "/tmp"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
