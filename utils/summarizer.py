@@ -32,38 +32,39 @@ def chunk_text(text):
 
 
 def summarize_text(text):
-    client = get_client()   # ✅ client created safely here
+    try:
+        client = get_client()
 
-    chunks = chunk_text(text)           
-    partial_summaries = []
+        chunks = chunk_text(text)
+        partial_summaries = []
 
-    for chunk in chunks:
-        response = client.chat.completions.create(
+        for chunk in chunks:
+            response = client.chat.completions.create(
+                model="llama-3.1-8b-instant",
+                messages=[
+                    {
+                        "role": "system",
+                        "content": "You are a financial research analyst. Extract key insights strictly from the given transcript. Do not fabricate information."
+                    },
+                    {
+                        "role": "user",
+                        "content": f"Summarize this transcript section:\n\n{chunk}"
+                    }
+                ],
+                temperature=0.3,
+                max_tokens=300
+            )
+
+            partial_summaries.append(response.choices[0].message.content)
+
+        combined_text = "\n\n".join(partial_summaries)
+
+        final_response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
             messages=[
                 {
                     "role": "system",
-                    "content": "You are a financial research analyst. Extract key insights strictly from the given transcript. Do not fabricate information."
-                },
-                {
-                    "role": "user",
-                    "content": f"Summarize this transcript section:\n\n{chunk}"
-                }
-            ],
-            temperature=0.3,
-            max_tokens=300
-        )
-
-        partial_summaries.append(response.choices[0].message.content)
-
-    combined_text = "\n\n".join(partial_summaries)
-
-    final_response = client.chat.completions.create(
-        model="llama-3.1-8b-instant",
-        messages=[
-            {
-                "role": "system",
-                "content": """You are a financial research analyst.
+                    "content": """You are a financial research analyst.
 
 Strictly rely only on the provided transcript.
 If something is not mentioned, write:
@@ -79,14 +80,20 @@ Forward Guidance:
 Capacity Utilization Trends:
 2-3 New Growth Initiatives:
 """
-            },
-            {
-                "role": "user",
-                "content": combined_text
-            }
-        ],
-        temperature=0.2,
-        max_tokens=500
-    )
+                },
+                {
+                    "role": "user",
+                    "content": combined_text
+                }
+            ],
+            temperature=0.2,
+            max_tokens=500
+        )
 
-    return final_response.choices[0].message.content
+        return final_response.choices[0].message.content
+
+    except Exception as e:
+        print("Groq Error:", str(e))
+        return "Error generating summary. Please try again with a smaller file."
+
+    
