@@ -5,9 +5,9 @@ from dotenv import load_dotenv
 load_dotenv()
 
 # HARD LIMITS
-MAX_TOTAL_CHARS = 8000
+MAX_TOTAL_CHARS = 4000
 CHUNK_SIZE = 2000
-MAX_CHUNKS = 3
+MAX_CHUNKS = 1
 
 
 def get_client():
@@ -34,7 +34,7 @@ def chunk_text(text):
 def summarize_text(text):
     client = get_client()   # ✅ client created safely here
 
-    chunks = chunk_text(text)
+    chunks = chunk_text(text)           
     partial_summaries = []
 
     for chunk in chunks:
@@ -51,7 +51,7 @@ def summarize_text(text):
                 }
             ],
             temperature=0.3,
-            max_tokens=500
+            max_tokens=300
         )
 
         partial_summaries.append(response.choices[0].message.content)
@@ -86,7 +86,7 @@ Capacity Utilization Trends:
             }
         ],
         temperature=0.2,
-        max_tokens=900
+        max_tokens=500
     )
 
     return final_response.choices[0].message.content
