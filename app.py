@@ -10,10 +10,6 @@ load_dotenv()
 
 app = Flask(__name__)
 
-@app.route("/")
-def index():
-    return "App is running successfully!"
-
 
 UPLOAD_FOLDER = "/tmp"
 app.config["UPLOAD_FOLDER"] = UPLOAD_FOLDER
@@ -23,28 +19,36 @@ os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 
 @app.route("/", methods=["GET", "POST"])
 def index():
+    print("Route accessed")
 
     result = None
 
     if request.method == "POST":
+        print("POST request received")
 
         file = request.files.get("file")
+        print("File object:", file)
 
         if file and file.filename != "":
+            print("File name:", file.filename)
 
             filepath = os.path.join(app.config["UPLOAD_FOLDER"], file.filename)
             file.save(filepath)
+            print("File saved at:", filepath)
 
             text = extract_text(filepath)
-
+            print("Extracted text length:", len(text))
 
             if not text.strip():
-                 result = "Error: Could not extract text from PDF."
+                print("No text extracted")
+                result = "Error: Could not extract text from PDF."
             else:
-                  result = summarize_text(text)
-
+                print("Calling summarizer...")
+                result = summarize_text(text)
+                print("Summary generated successfully")
 
     return render_template("index.html", result=result)
+
 
 
 
