@@ -4,16 +4,23 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-
-# HARD LIMITS to prevent Render timeout
+# HARD LIMITS
 MAX_TOTAL_CHARS = 8000
 CHUNK_SIZE = 2000
 MAX_CHUNKS = 3
 
 
+def get_client():
+    api_key = os.getenv("GROQ_API_KEY")
+
+    if not api_key:
+        raise ValueError("GROQ_API_KEY is not set")
+
+    return Groq(api_key=api_key)
+
+
 def chunk_text(text):
-    text = text[:MAX_TOTAL_CHARS]  # hard limit full text
+    text = text[:MAX_TOTAL_CHARS]
     chunks = []
 
     for i in range(0, len(text), CHUNK_SIZE):
@@ -25,11 +32,11 @@ def chunk_text(text):
 
 
 def summarize_text(text):
-    chunks = chunk_text(text)
+    client = get_client()   # ✅ client created safely here
 
+    chunks = chunk_text(text)
     partial_summaries = []
 
-    # Step 1: Summarize limited chunks
     for chunk in chunks:
         response = client.chat.completions.create(
             model="llama-3.1-8b-instant",
@@ -51,7 +58,6 @@ def summarize_text(text):
 
     combined_text = "\n\n".join(partial_summaries)
 
-    # Step 2: Final structured output
     final_response = client.chat.completions.create(
         model="llama-3.1-8b-instant",
         messages=[
