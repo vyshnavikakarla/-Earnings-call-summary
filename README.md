@@ -23,12 +23,12 @@ The system is designed to process long transcripts reliably while respecting API
 
 ##  How It Works
 
-### 1️ Document Processing
+### 1.Document Processing
 - User uploads an earnings call transcript (PDF).
 - The system extracts text from the document.
 - If the document is large, it is split into manageable chunks.
 
-### 2️ Hierarchical Summarization
+### 2. Hierarchical Summarization
 To handle long transcripts efficiently:
 
 - Step 1: Each chunk is summarized individually.
@@ -87,6 +87,17 @@ This ensures research-grade reliability.
 - OCR functionality may not be supported in deployed environments.
 - Output depends entirely on the quality and clarity of the provided transcript.
 
+## Deployment Constraints
+
+This application is deployed on Render Free Tier, which has limited memory and CPU resources.
+
+To ensure stability:
+- Maximum PDF upload size: 4MB
+- Extracted text is truncated before sending to OpenAI API
+
+These constraints prevent Gunicorn worker crashes and optimize memory usage.
+
+
 ---
 
 ## Deployment
@@ -106,7 +117,8 @@ GROQ_API_KEY=your_api_key_here
 
 ##  Live Deployment Link
 
-[Paste your Render deployment link here]
+Render
+https://earnings-call-summary.onrender.com
 
 ---
 
